@@ -6,9 +6,24 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+import seaborn as sns
 
 
 # Data Centering
+def visualize_distributions_for_skew(data):
+    for col in data.columns:
+        print(col)
+        sns_plot = sns.distplot(data.loc[:,col], bins=20)
+        fig = sns_plot.get_figure()
+        fig.savefig('batch_figures/' + col + ".png")
+        fig.clear()
+
+        frequency_log = np.log(data.lo[:, col] + 1)
+        log_plot = sns.distplot(frequency_log)
+        log_fig = log_plot.get_figure()
+        log_fig.savefig('batch_figures/log' + col + ".png")
+        plt.show()
+
 def centering(data):
     return data.apply(np.log)
 
@@ -17,19 +32,14 @@ def centering(data):
 def standardization(data):
     scaler = StandardScaler()
     scaler.fit(data)
-    return scaler.transform(data)
+    return pd.DataFrame(scaler.transform(data))
 
 
 # Decorrelation
 def decorrelation(data):
     pca = PCA()
     pca.fit(data)
-    return pca.transform(data)
-
-
-# ReStandardization
-def restandardization(data):
-    pass
+    return pd.DataFrame(pca.transform(data))
 
 
 # Feature Reduction
@@ -49,7 +59,7 @@ def feature_reduction(data, num_com=2):
     pca.fit(data)
     pca_features = pca.transform(data)
     print(pca_features.shape)
-    return pca_features
+    return pd.DataFrame(pca_features)
 
 
 # Finding the optimal number of clusters
@@ -74,20 +84,26 @@ if __name__ == '__main__':
     iris = datasets.load_iris()
     iris_df = pd.DataFrame(iris.data)
     iris_df.columns = iris.feature_names
-    print(iris_df.head())
+    # print(iris_df.head())
+
     optimal_clusters(iris_df)
     num_clust = int(input("What is the optimal number of clusters?"))
     model = KMeans(n_clusters=num_clust)
-    model.fit(iris_df)
-    labels = model.predict(iris_df)
-    iris_df['labels'] = labels
+    bdat = feature_reduction(standardization(decorrelation(standardization(centering(iris_df)))))
+
+    model.fit(bdat)
+    iris_df['labels'] = model.predict(bdat)
+    iris_df['actual'] = iris.target_names[iris.target]
+    ct = pd.crosstab(iris_df['labels'], iris_df['actual'])
 
     # Deriving personas from clusters
     for i in range(num_clust):
         clust = iris_df[iris_df['labels'] == i]
-        clust = clust.drop(['labels'], axis=1)
+        clust = clust.drop(['labels', 'actual'], axis=1)
         print('\nCluster', i)
         print(clust.head())
+
+    print(ct)
 
 
 
