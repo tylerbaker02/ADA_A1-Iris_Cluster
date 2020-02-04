@@ -24,6 +24,7 @@ def visualize_distributions_for_skew(data):
         log_fig.savefig('batch_figures/log' + col + ".png")
         plt.show()
 
+
 def centering(data):
     return data.apply(np.log)
 
