@@ -12,13 +12,12 @@ import seaborn as sns
 # Data Centering
 def visualize_distributions_for_skew(data):
     for col in data.columns:
-        print(col)
-        sns_plot = sns.distplot(data.loc[:,col], bins=20)
+        sns_plot = sns.distplot(data.loc[:, col], bins=20)
         fig = sns_plot.get_figure()
         fig.savefig('batch_figures/' + col + ".png")
         fig.clear()
 
-        frequency_log = np.log(data.lo[:, col] + 1)
+        frequency_log = np.log(data.loc[:, col] + 1)
         log_plot = sns.distplot(frequency_log)
         log_fig = log_plot.get_figure()
         log_fig.savefig('batch_figures/log' + col + ".png")
@@ -86,7 +85,7 @@ if __name__ == '__main__':
     iris_df = pd.DataFrame(iris.data)
     iris_df.columns = iris.feature_names
     # print(iris_df.head())
-
+    visualize_distributions_for_skew(iris_df)
     optimal_clusters(iris_df)
     num_clust = int(input("What is the optimal number of clusters?"))
     model = KMeans(n_clusters=num_clust)
